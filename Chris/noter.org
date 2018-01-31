@@ -1,0 +1,45 @@
+* Introduction
+** SOC Self-organized Critically
+System med mange frihedsgrader vil selv små pertubationer føre til frigørelser af større og større energi
+Soc model producere potens love som $x^{2}$ 
+
+I denne opgave bliver der brugt en simpel SOC model kaldet OFC
+
+* Model 
+Modellen går ud på 2 plader, der er forbundet ved brug af nogle bevæglige klodser. Den nedersen plade er sat fast. 
+Klodserne er sat sammen med fjedre og med fjeder til den øverste plade.
+
+* 1D Model 
+Enkelte klodser er forbundet i en x retning ved fjederen $K_{2}$. 
+
+Vi har N Klodser (1xN Array), med afstanden $l_{0}$. Forbundet med en fjederkonstant $k_{\pm}$. 
+
+Yderliger en fjeder $k_{1}$ som bruges til at trække i klodserne, med $k_{p}$. 
+
+Hver klods har massen $M_{b}$, en grundfalde $A_{b}$ og en friktionskoefficient $\mu_{b}$. 
+
+
+
+Så er friktionskraften pr klod 
+
+\begin{equation}
+F_{b,frik} = \mu_{b}M_{b}A_{b}
+\end{equation}
+
+
+Den horisontale frederkraft er 
+
+\begin{equation}
+F_{b,hor} = l_{p,b} k_{p} + l_{+} k_{+} - l_{-}k_{-}
+
+\end{equation}
+
+** Tip: 
+\begin{align}
+l_{+} &= l_{0} + \delta_{ +} - \delta_{b} \\
+l_{-} &= l_{0} + \delta_{-} - \delta_{b} \\
+l_{p,b} &= \delta_{p}-\delta_{b}
+\end{align}
+
+
+

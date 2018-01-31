@@ -1,0 +1,8 @@
+F0frik = 1*1- 0.05 +(0.05+0.05)*rand; %Friktionskraft
+
+p = ureal('p',1,'Percentage', [-0.05, 0.05]);
+l_p = 0;
+l_0 = 1 -0.05 +(0.05+0.05)*rand;
+k_p = 1 -0.05 +(0.05+0.05)*rand;
+
+a = 0.75; 
