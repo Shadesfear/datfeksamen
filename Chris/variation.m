@@ -4,5 +4,6 @@ function [outputArg] = variation(number,variationPercent)
 a = -variationPercent/100;
 b = variationPercent/100;
 outputArg = number+number*(a + (-a+b)*rand);
+
 end
 
