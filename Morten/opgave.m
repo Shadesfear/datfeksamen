@@ -2,16 +2,24 @@ clear all; close all; clc
 import klodsclass
 
 %% Variable
-l_p = [1.2,0];
+l_p = [0,0]
 l_0 = 1 + normrnd(0,1)*0.05; % Ligev?gtsl?ngde mellem blokkene
 k_p = 1 + normrnd(0,1)*0.05; % Fjederkonstant - tr?kplade
 k_x = 1 + normrnd(0,1)*0.05; % Fjederkonstant mellem klodser i x retning
 k_y = 1 + normrnd(0,1)*0.05; % Fjederkonstant mellem klodser i y retning
 alpha = 0.75 + normrnd(0,0.75)*0.05; % br?kdel af friktionskraft i fjeder efter flyting
-N_xy = [100,100]; % Antal blokke i modellen
 ee = 0.0001; % konvergenes kriterie for 2D model
 Etot = 0; % Total energi i sk?lv
 klodsamount = 0; % Antal klodser i sk?lv
+
+%% Justerbare variable
+%l_p = [1.2,1.2]; % Tr?k i alle klodser med samme ryk fra ?vre plade l_p
+
+% Hvis der ?nskes at rykke til kun 1 tilf?ldig blok, se sektion "Valg af
+% ryk i ?vre plade l_p"
+
+N_xy = [100,100]; % Antal blokke i modellen
+
 
 
 %% Konstruerer klodser objekt i array
@@ -29,113 +37,142 @@ for i = 1:size(objarray,1)
     end
     
 end
+%% Valg af ryk i ?vre plade l_p
+for g=1:15
+    x = randi([1 100],1,1);
+    y = randi([1 100],1,1);
+    mag = [randi([1 15],1,1), randi([1 15],1,1)];
+    
+    objarray(y,x).l_p = mag % tr?kker i ?n tilf?ldig klods, med justerbare v?rdier i sidste array
+end
 
-
-%% Find ustabile klodser 
+%% Plots f?r
+valuesfoer = [objarray.pos];
+figure(1)
+plot(valuesfoer(1:2:20000), valuesfoer(2:2:20000), '.');
+%% Tjek og flyt alle klodser indtil alle er stabile i 2 loops
 [x,y] = size(objarray);
-for i=(1:x)
-    for m=(1:y)
-        i_op = i-1;
-        i_ned = i+1;
-        m_v = m-1;
-        m_h = m+1;
-        
-%       If statements til perriodic boundary conditions
-        if(i == 1)
-            i_op = x;
-            F_o = objarray(i,m).fjedero(1,2) * (objarray(i_op,m).pos - (objarray(i,m).pos - [0,x*l_0]));
-            F_n = objarray(i,m).fjedern(1,2) * (objarray(i_ned,m).pos - objarray(i,m).pos);
-            
-        elseif(i == x)
-            i_ned = 1;
-            F_n = objarray(i,m).fjedern(1,2) * (objarray(i_ned,m).pos - (objarray(i,m).pos + [0,x*l_0]));
-            F_o = objarray(i,m).fjedero(1,2) * (objarray(i_op,m).pos - objarray(i,m).pos);   
-        elseif(i~=1 && i~=x)
-            F_n = objarray(i,m).fjedern(1,2) * (objarray(i_ned,m).pos - objarray(i,m).pos);
-            F_o = objarray(i,m).fjedero(1,2) * (objarray(i_op,m).pos - objarray(i,m).pos);   
-        end
-        
-                    
-        if(m == 1)
-            m_v = y;
-            F_v = objarray(i,m).fjederv(1,2) * (objarray(i,m_v).pos - (objarray(i,m).pos + [y*l_0,0]));
-            F_h = objarray(i,m).fjederh(1,2) * (objarray(i,m_h).pos - objarray(i,m).pos);
-            
-        elseif(m == y) 
-            m_h = 1;
-            F_h = objarray(i,m).fjederh(1,2) * (objarray(i,m_h).pos - (objarray(i,m).pos - [y*l_0,0]));
-            F_v = objarray(i,m).fjederv(1,2) * (objarray(i,m_v).pos - objarray(i,m).pos);
-        elseif(m~=1 && m~=y)
-            F_h = objarray(i,m).fjederh(1,2) * (objarray(i,m_h).pos - objarray(i,m).pos);
-            F_v = objarray(i,m).fjederv(1,2) * (objarray(i,m_v).pos - objarray(i,m).pos);
-        end
- 
-        objarray(i,m).F_hori = objarray(i,m).k_p * objarray(i,m).l_p...
-            + F_v + F_h + F_n + F_o;
-        
-        if(norm(objarray(i,m).F_hori) > objarray(i,m).frik)
-            objarray(i,m).stable = false;
-            
-        else
-            objarray(i,m).stable = true;
-        end
-            
-        
-        
-        
-        if(objarray(i,m).stable == false)
-            while(norm(objarray(i,m).F_hori) > alpha*objarray(i,m).frik)
-                objarray(i,m).dpos = objarray(i,m).F_hori*0.1*(norm(objarray(i,m).F_hori) - alpha*objarray(i,m).frik);
-                objarray(i,m).pos = objarray(i,m).pos + objarray(i,m).dpos;
-                Etot = Etot + (norm(objarray(i,m).dpos)*objarray(i,m).frik);
-                if(i == 1)
-                    i_op = x;
-                    F_o = objarray(i,m).fjedero(1,2) * (objarray(i_op,m).pos - (objarray(i,m).pos - [0,x*l_0]));
-                    F_n = objarray(i,m).fjedern(1,2) * (objarray(i_ned,m).pos - objarray(i,m).pos);
-            
-                elseif(i == x)
-                    i_ned = 1;
-                    F_n = objarray(i,m).fjedern(1,2) * (objarray(i_ned,m).pos - (objarray(i,m).pos + [0,x*l_0]));
-                    F_o = objarray(i,m).fjedero(1,2) * (objarray(i_op,m).pos - objarray(i,m).pos);   
-                elseif(i~=1 && i~=x)
-                    F_n = objarray(i,m).fjedern(1,2) * (objarray(i_ned,m).pos - objarray(i,m).pos);
-                    F_o = objarray(i,m).fjedero(1,2) * (objarray(i_op,m).pos - objarray(i,m).pos);   
-                end
+for r=(1:1000)
+    ite = 1
+    for i=(1:x)
+        for m=(1:y)
+            i_op = i-1;
+            i_ned = i+1;
+            m_v = m-1;
+            m_h = m+1;
 
-                if(m == 1)
-                    m_v = y;
-                    F_v = objarray(i,m).fjederv(1,2) * (objarray(i,m_v).pos - (objarray(i,m).pos + [y*l_0,0]));
-                    F_h = objarray(i,m).fjederh(1,2) * (objarray(i,m_h).pos - objarray(i,m).pos);
+    %       If statements til perriodic boundary conditions
+            if(i == 1)
+                i_op = x;
+                F_o = objarray(i,m).fjedero(1,2) * (objarray(i_op,m).pos - (objarray(i,m).pos - [0,x*l_0]));
+                F_n = objarray(i,m).fjedern(1,2) * (objarray(i_ned,m).pos - objarray(i,m).pos);
 
-                elseif(m == y) 
-                    m_h = 1;
-                    F_h = objarray(i,m).fjederh(1,2) * (objarray(i,m_h).pos - (objarray(i,m).pos - [y*l_0,0]));
-                    F_v = objarray(i,m).fjederv(1,2) * (objarray(i,m_v).pos - objarray(i,m).pos);
-                elseif(m~=1 && m~=y)
-                    F_h = objarray(i,m).fjederh(1,2) * (objarray(i,m_h).pos - objarray(i,m).pos);
-                    F_v = objarray(i,m).fjederv(1,2) * (objarray(i,m_v).pos - objarray(i,m).pos);
-                end
-
-                objarray(i,m).F_hori = objarray(i,m).k_p * objarray(i,m).l_p...
-                    + F_v + F_h + F_n + F_o;
-                           
-                if(norm(objarray(i,m).F_hori) <= alpha*objarray(i,m).frik+0.01)
-                    objarray(i,m).stable = true;
-                    objarray(i,m).flyttet = true;
-                    objarray(i,m).L = true;
-                    klodsamount = klodsamount + 1;
-                    
-                    break
-                end        
-            
+            elseif(i == x)
+                i_ned = 1;
+                F_n = objarray(i,m).fjedern(1,2) * (objarray(i_ned,m).pos - (objarray(i,m).pos + [0,x*l_0]));
+                F_o = objarray(i,m).fjedero(1,2) * (objarray(i_op,m).pos - objarray(i,m).pos);   
+            elseif(i~=1 && i~=x)
+                F_n = objarray(i,m).fjedern(1,2) * (objarray(i_ned,m).pos - objarray(i,m).pos);
+                F_o = objarray(i,m).fjedero(1,2) * (objarray(i_op,m).pos - objarray(i,m).pos);   
             end
+
+
+            if(m == 1)
+                m_v = y;
+                F_v = objarray(i,m).fjederv(1,2) * (objarray(i,m_v).pos - (objarray(i,m).pos + [y*l_0,0]));
+                F_h = objarray(i,m).fjederh(1,2) * (objarray(i,m_h).pos - objarray(i,m).pos);
+
+            elseif(m == y) 
+                m_h = 1;
+                F_h = objarray(i,m).fjederh(1,2) * (objarray(i,m_h).pos - (objarray(i,m).pos - [y*l_0,0]));
+                F_v = objarray(i,m).fjederv(1,2) * (objarray(i,m_v).pos - objarray(i,m).pos);
+            elseif(m~=1 && m~=y)
+                F_h = objarray(i,m).fjederh(1,2) * (objarray(i,m_h).pos - objarray(i,m).pos);
+                F_v = objarray(i,m).fjederv(1,2) * (objarray(i,m_v).pos - objarray(i,m).pos);
+            end
+
+            objarray(i,m).F_hori = objarray(i,m).k_p * objarray(i,m).l_p...
+                + F_v + F_h + F_n + F_o;
+
+            if(norm(objarray(i,m).F_hori) > objarray(i,m).frik && objarray(i,m).flyttet == false)
+                objarray(i,m).stable = false;
+
+            else
+                objarray(i,m).stable = true;
+            end      
             
-                    
+
+            if(objarray(i,m).stable == false)
+                ite = ite + 1;
+                while(norm(objarray(i,m).F_hori) > alpha*objarray(i,m).frik)
+                    objarray(i,m).dpos = objarray(i,m).F_hori*0.02*(norm(objarray(i,m).F_hori) - alpha*objarray(i,m).frik);
+                    objarray(i,m).pos = objarray(i,m).pos + objarray(i,m).dpos;
+                    Etot = Etot + (norm(objarray(i,m).dpos)*objarray(i,m).frik);
+                    if(i == 1)
+                        i_op = x;
+                        F_o = objarray(i,m).fjedero(1,2) * (objarray(i_op,m).pos - (objarray(i,m).pos - [0,x*l_0]));
+                        F_n = objarray(i,m).fjedern(1,2) * (objarray(i_ned,m).pos - objarray(i,m).pos);
+
+                    elseif(i == x)
+                        i_ned = 1;
+                        F_n = objarray(i,m).fjedern(1,2) * (objarray(i_ned,m).pos - (objarray(i,m).pos + [0,x*l_0]));
+                        F_o = objarray(i,m).fjedero(1,2) * (objarray(i_op,m).pos - objarray(i,m).pos);   
+                    elseif(i~=1 && i~=x)
+                        F_n = objarray(i,m).fjedern(1,2) * (objarray(i_ned,m).pos - objarray(i,m).pos);
+                        F_o = objarray(i,m).fjedero(1,2) * (objarray(i_op,m).pos - objarray(i,m).pos);   
+                    end
+
+                    if(m == 1)
+                        m_v = y;
+                        F_v = objarray(i,m).fjederv(1,2) * (objarray(i,m_v).pos - (objarray(i,m).pos + [y*l_0,0]));
+                        F_h = objarray(i,m).fjederh(1,2) * (objarray(i,m_h).pos - objarray(i,m).pos);
+
+                    elseif(m == y) 
+                        m_h = 1;
+                        F_h = objarray(i,m).fjederh(1,2) * (objarray(i,m_h).pos - (objarray(i,m).pos - [y*l_0,0]));
+                        F_v = objarray(i,m).fjederv(1,2) * (objarray(i,m_v).pos - objarray(i,m).pos);
+                    elseif(m~=1 && m~=y)
+                        F_h = objarray(i,m).fjederh(1,2) * (objarray(i,m_h).pos - objarray(i,m).pos);
+                        F_v = objarray(i,m).fjederv(1,2) * (objarray(i,m_v).pos - objarray(i,m).pos);
+                    end
+
+                    objarray(i,m).F_hori = objarray(i,m).k_p * objarray(i,m).l_p...
+                        + F_v + F_h + F_n + F_o;
+
+                    if(norm(objarray(i,m).F_hori) <= alpha*objarray(i,m).frik+0.01)
+                        objarray(i,m).stable = true;
+                        objarray(i,m).flyttet = true;
+                        objarray(i,m).L = true;
+                        klodsamount = klodsamount + 1;
+
+                        break
+                    end        
+
+                end
+
+
+            end
+
         end
-                
+    end
+    stablecount = [objarray.stable];
+            
+% Stopper det ydre for-loop hvis alle klodser er stabile efter 2 tjek    
+    if(all(stablecount) == true && ite == 1)
+        break
     end
 end
 L = [objarray.L];
 
-%%
+disp("Antallet af klodser involveret i skaelvet var:")
+disp(klodsamount)
+
+disp("den frigivne energi i skaelvet var:")
+disp(Etot)
+
+%% Plots efter
+
+valuesefter = [objarray.pos];
+figure(2)
+plot(valuesefter(1:2:20000), valuesfoer(2:2:20000), '.');
 
