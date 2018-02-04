@@ -3,8 +3,7 @@ N=10;
 M=10;
 global kloddser energy;
 kloddser = struct;
-l_0 = variation(1,5);
-%L2= [];
+l_0 = 1; %variation(1,5);
 Lprime ={};
 global kp;
 kp = 1;
@@ -12,9 +11,7 @@ k = 1;
 a = 0.75;
 antalSkaelv = 0;
 energy = 0;
-
 deltap = 0;
-%Definer 
 for i = 1:N
     for o = 1:M
         kloddser(i,o)=struct;
@@ -38,7 +35,7 @@ for i = 1:N
         kloddser(i,o).deltap = 0;
         kloddser(i,o).b = [kloddser(i,o).xpos,kloddser(i,o).ypos];
         kloddser(i,o).deltadelta = 0;%[kloddser(i,o).deltax, kloddser(i,o).deltay];
-        kloddser(i,o).lp = 0;
+        kloddser(i,o).lp = [0,0];
             
         if (i == 1 || i == N)
             kloddser(i,o).fhor = 0;
@@ -49,20 +46,27 @@ for i = 1:N
         else
             %De steder med + virker koden ikke
             %jeg forst?r ikke hvorfor 
-            
+                
         end
     end
 end
-
-updateFhor();
-
+%%
+% valuesfore = [kloddser.b];
+% 
+% figure(1)
+% plot(valuesfore(1:2:200), valuesfore(2:2:200), '*')
 %%
 
-kloddser(4,4).fhor = [3,2];
-%kloddser(2,4).fhor = [0.0];
-
-L2  = tjekKlodser();
 updateFhor();
+
+
+
+%kloddser(4,4).fhor = [3,2];
+%kloddser(2,4).fhor = [0.0];
+kloddser(4,4).lp = [3.9,-3.3];
+updateFhor();
+L2  = tjekKlodser();
+%updateFhor();
 
 
 while(~isempty(L2) || ~isempty(Lprime))
@@ -132,5 +136,8 @@ for i = 1:N
         end
     end
 end
-
-
+%%
+% valuesfore2 = [kloddser.b];
+% 
+% figure(2)
+% plot(valuesfore2(1:2:200), valuesfore2(2:2:200), '*')
