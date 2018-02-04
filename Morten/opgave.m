@@ -2,7 +2,7 @@ clear all; close all; clc
 import klodsclass
 
 %% Variable
-l_p = [0,0]
+l_p = [0,0];
 l_0 = 1 + normrnd(0,1)*0.05; % Ligev?gtsl?ngde mellem blokkene
 k_p = 1 + normrnd(0,1)*0.05; % Fjederkonstant - tr?kplade
 k_x = 1 + normrnd(0,1)*0.05; % Fjederkonstant mellem klodser i x retning
@@ -15,10 +15,10 @@ klodsamount = 0; % Antal klodser i sk?lv
 %% Justerbare variable
 %l_p = [1.2,1.2]; % Tr?k i alle klodser med samme ryk fra ?vre plade l_p
 
-% Hvis der ?nskes at rykke til kun 1 tilf?ldig blok, se sektion "Valg af
+% Hvis der ?nskes at rykke til tilf?ldige blokke, se sektion "Valg af
 % ryk i ?vre plade l_p"
 
-N_xy = [100,100]; % Antal blokke i modellen
+N_xy = [50,50]; % Antal blokke i modellen
 
 
 
@@ -38,18 +38,21 @@ for i = 1:size(objarray,1)
     
 end
 %% Valg af ryk i ?vre plade l_p
+
+% Her v?lges 15 forskellige, tilf?ldige klodser til at bliver rykket i, med
+% en tilf?ldig kraft, inden for et interval
 for g=1:15
-    x = randi([1 100],1,1);
-    y = randi([1 100],1,1);
+    xv = randi([1 N_xy(1,2)],1,1);
+    yv = randi([1 N_xy(1,1)],1,1);
     mag = [randi([1 15],1,1), randi([1 15],1,1)];
     
-    objarray(y,x).l_p = mag % tr?kker i ?n tilf?ldig klods, med justerbare v?rdier i sidste array
+    objarray(yv,xv).l_p = [mag(1),mag(2)]; % s?tter den ?verste plades forskydning
 end
 
 %% Plots f?r
 valuesfoer = [objarray.pos];
 figure(1)
-plot(valuesfoer(1:2:20000), valuesfoer(2:2:20000), '.');
+plot(valuesfoer(1:2:length(valuesfoer)), valuesfoer(2:2:length(valuesfoer)), '*');
 %% Tjek og flyt alle klodser indtil alle er stabile i 2 loops
 [x,y] = size(objarray);
 for r=(1:1000)
@@ -174,5 +177,5 @@ disp(Etot)
 
 valuesefter = [objarray.pos];
 figure(2)
-plot(valuesefter(1:2:20000), valuesfoer(2:2:20000), '.');
+plot(valuesefter(1:2:length(valuesefter)), valuesefter(2:2:length(valuesefter)), '*');
 
